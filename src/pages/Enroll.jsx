@@ -27,11 +27,15 @@ const Enroll = () => {
     const updated = Array(fingerPositions.length).fill(false);
     if (!selectedFingers[index]) {
       updated[index] = true;
+      setFingerIndex (index);
       setSelectedFingers(updated);
       setScanImage(null);
+      setLog('');
     } else {
       setSelectedFingers(updated);
+      setFingerIndex (index);
       setScanImage(null);
+      setLog('');
     }
   };
 
@@ -42,6 +46,7 @@ const Enroll = () => {
     lastName: '',
   });
 
+  const [fingerIndex, setFingerIndex] = useState(0);
   const [log, setLog] = useState('');
   const [scanImage, setScanImage] = useState(null);
   const [errors, setErrors] = useState({});
@@ -72,16 +77,38 @@ const Enroll = () => {
       return;
     }
 
-    setLog('Capturing fingerprint(s)...');
+    const ENROLL_ENDPOINT = import.meta.env.VITE_ENDPOINT_URL + '/enroll';
+
+    console.log("url: " + ENROLL_ENDPOINT);
+
+    setLog('Please place your finger...');
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     try {
-      const response = await fetch('/dumyscanimg.json');
-      const data = await response.json();
-      setScanImage(data.scanImageBase64);
-      setLog(`Successfully captured: ${selected.join(', ')} for user (ID: ${formData.userId}) ${formData.firstName} ${formData.lastName} `);
+
+      const userData = {
+        userId: formData.userId,
+        imageQualityThreshold: formData.imageQuality,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        fingerPosition: fingerIndex
+      };
+
+      console.log('Sending user data:', userData);
+
+      const res = await fetch("/data/enrollResult.json", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      })
+        .then((res) => res.json())
+        .then((data) => setScanImage(data.scanImageBase64), setLog(`Successfully captured: finger for user (ID: ${formData.userId}) ${formData.firstName} ${formData.lastName} `))
+        .catch((error) => setLog('Failed to load fingerprint scan image. ' + error.message));
     } catch (err) {
-      setLog('Failed to load fingerprint scan image.');
+      setLog('Failed to load fingerprint scan image. ' + err.message);
+      console.error('Error during enrollment:', err);
     }
 
   };
@@ -102,7 +129,7 @@ const Enroll = () => {
           className="w-full mb-4"
         />
 
-        <label className="block mb-2 text-sm font-medium">User ID <span className="text-red-500">*</span></label> 
+        <label className="block mb-2 text-sm font-medium">User ID <span className="text-red-500">*</span></label>
         <input
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
