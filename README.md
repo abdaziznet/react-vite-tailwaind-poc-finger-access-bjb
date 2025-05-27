@@ -2,6 +2,10 @@
 
 ---
 
+#### run development
+    1. npm run dev
+   
+
 #### :bulb: how to deploy with docker
 
     1. npm run build

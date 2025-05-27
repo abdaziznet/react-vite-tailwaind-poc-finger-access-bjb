@@ -22,7 +22,6 @@ const Identify = () => {
   const [log, setLog] = useState({ message: '', type: '' });
   const [scanImage, setScanImage] = useState(null);
 
-  const IDENTIFY_ENDPOINT = import.meta.env.VITE_ENDPOINT_URL + '/identify';
 
   const toggleFinger = (index) => {
     const updated = Array(fingerPositions.length).fill(false);
@@ -47,6 +46,8 @@ const Identify = () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     try {
+      const url = import.meta.env.VITE_ENDPOINT_URL + '/api/identify';
+
       const res = await fetch('/data/identifyResult.json', {
         method: 'POST',
         headers: {
@@ -60,10 +61,16 @@ const Identify = () => {
       }
 
       if (data.OperationStatus === false) {
-        setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
+        setLog({ message: data.OperationMessage || 'Identification failed', type: 'error' });
         setScanImage(null); // Kosongkan image jika gagal
       }
       else {
+        if (!data.IsMatch) {
+          setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
+          setScanImage(null); // Kosongkan image jika gagal
+          return;
+        }
+
         setScanImage(data.CaptureImage);
         setFormData((prev) => ({
           ...prev,

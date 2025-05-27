@@ -47,7 +47,7 @@ const Verify = () => {
     const controller = new AbortController();
 
     const params = new URLSearchParams({ userid: formData.userId });
-    const url = `${import.meta.env.VITE_ENDPOINT_URL}/getFingerIndex?${params}`;
+    const url = `${import.meta.env.VITE_ENDPOINT_URL}/api/getuser?${params}`;
 
     console.log('Fetching finger index from:', url);
 
@@ -112,7 +112,6 @@ const Verify = () => {
       return;
     }
 
-    const VERIFY_ENDPOINT = import.meta.env.VITE_ENDPOINT_URL + '/verify';
     setLog({ message: 'Please place your finger...', type: 'info' });
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -122,6 +121,8 @@ const Verify = () => {
     };
 
     try {
+      const url = import.meta.env.VITE_ENDPOINT_URL + '/api/verify';
+
       const res = await fetch('/data/verifyResult.json', {
         method: 'POST',
         headers: {
@@ -136,10 +137,15 @@ const Verify = () => {
       }
 
       if (data.OperationStatus === false) {
-        setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
+        setLog({ message: data.OperationMessage || 'Verification failed', type: 'error' });
         setScanImage(null); // Kosongkan image jika gagal
       }
       else {
+        if (!data.IsMatch) {
+          setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
+          setScanImage(null); // Kosongkan image jika gagal
+          return;
+        }
         setFormData((prev) => ({
           ...prev,
           firstName: data.FirstName || '',
