@@ -29,7 +29,6 @@ const Verify = () => {
     updated[index] = true;
     setSelectedFingers(updated);
     setFingerIndex(index);
-    setScanImage(null);
     setLog({ message: '', type: '' });
   };
 
@@ -128,7 +127,7 @@ const Verify = () => {
         lastName: data.lastName || '',
       }));
 
-      setLog({ message: `Successfully captured: finger for user (ID: ${formData.userId}) ${formData.firstName} ${formData.lastName}`, type: 'success' });
+      setLog({ message: `Successfully verification finger`, type: 'success' });
     } catch (err) {
       setLog({ message: 'Failed to load fingerprint scan image. ' + err.message, type: 'error' });
       console.error('Error during enrollment:', err);
@@ -139,13 +138,15 @@ const Verify = () => {
     <div className="flex flex-row items-start justify-center p-8 gap-8">
       <div className="w-80 border border-gray-300 p-4 rounded-lg shadow-sm">
         <h2 className="text-lg font-semibold mb-4">User Information</h2>
-        <label className="block mb-2 text-sm font-medium">User ID</label>
+        <label className="block mb-2 text-sm font-medium">User ID <span className="text-red-500">*</span></label>
         <input
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.userId}
           onChange={handleUserIdChange}
         />
+        {errors.userId && <p className="text-xs text-red-500 mb-2">{errors.userId}</p>}
+
         <label className="block mb-2 text-sm font-medium">First Name</label>
         <input type="text" className="w-full mb-4 border border-gray-300 rounded px-2 py-1" value={formData.firstName} disabled />
         <label className="block mb-2 text-sm font-medium">Last Name</label>
@@ -154,6 +155,7 @@ const Verify = () => {
 
       <div className="flex flex-col items-center">
         <div className="relative w-[700px] h-[505px] border border-gray-300">
+          {/* <h2 className="text-lg text-center font-semibold mb-4 p-4">Verification</h2> */}
           <div className="absolute left-1/2 top-1/2 w-[80%] h-[50%] -translate-x-1/2 -translate-y-1/2">
             {fingerPositions.map((pos, idx) => (
               <label
