@@ -27,13 +27,13 @@ const Enroll = () => {
     const updated = Array(fingerPositions.length).fill(false);
     if (!selectedFingers[index]) {
       updated[index] = true;
-      setFingerIndex (index);
+      setFingerIndex(index);
       setSelectedFingers(updated);
       setScanImage(null);
       setLog('');
     } else {
       setSelectedFingers(updated);
-      setFingerIndex (index);
+      setFingerIndex(index);
       setScanImage(null);
       setLog('');
     }
@@ -113,6 +113,13 @@ const Enroll = () => {
 
   };
 
+  const handleUserIdOnlyNUmeric = (e) => {
+    const input = e.target.value;
+    if (/^\d*$/.test(input)) {
+      setFormData({ ...formData, userId: input });
+    }
+  };
+
   return (
     <div className="flex flex-row items-start justify-center p-8 gap-8">
       {/* Form Section */}
@@ -134,7 +141,12 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.userId}
-          onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*$/.test(value)) { 
+              setFormData({ ...formData, userId: e.target.value }) 
+            }
+          }}
         />
         {errors.userId && <p className="text-xs text-red-500 mb-2">{errors.userId}</p>}
 
