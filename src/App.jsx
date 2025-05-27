@@ -1,7 +1,7 @@
 import Enroll from './pages/Enroll';
 import Verify from './pages/Verify';
 import Identify from './pages/Identify';
-import { Link, NavLink, Route, Routes } from 'react-router-dom';
+import { NavLink, Route, Routes } from 'react-router-dom';
 import logo from './assets/ivt.png';
 
 function App() {

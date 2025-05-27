@@ -41,6 +41,7 @@ const Identify = () => {
     }));
 
     toggleFinger(null);
+    setScanImage(null);
 
     setLog({ message: 'Please place your finger...', type: 'info' });
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -54,20 +55,31 @@ const Identify = () => {
       });
 
       const data = await res.json();
-      setScanImage(data.scanImageBase64);
-      setFormData((prev) => ({
-        ...prev,
-        userId: data.userId || '',
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-      }));
+      if (!res.ok) {
+        throw new Error(data.OperationMessage || 'Failed to Identification');
+      }
 
-      const fingerIndex = getFingerIndexFromEnum(data.fingerPosition);
-      // console.log('finger position:',data.fingerPosition);
-      // console.log('Finger index:', fingerIndex);
-      toggleFinger(fingerIndex);
-
-      setLog({ message: `Successfully identification finger`, type: 'success' });
+      if (data.OperationStatus === false) {
+        setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
+        setScanImage(null); // Kosongkan image jika gagal
+      }
+      else {
+        setScanImage(data.CaptureImage);
+        setFormData((prev) => ({
+          ...prev,
+          userId: data.UserId || '',
+          firstName: data.FirstName || '',
+          lastName: data.LastName || '',
+        }));
+        const fingerIndex = getFingerIndexFromEnum(data.FingerPosition);
+        // console.log('finger position:',data.fingerPosition);
+        // console.log('Finger index:', fingerIndex);
+        toggleFinger(fingerIndex);
+        setLog({
+          message: `Match user (ID: ${data.UserId}) ${data.FirstName} ${data.LastName}`,
+          type: 'success'
+        });
+      }
     } catch (err) {
       setLog({ message: 'Failed to load fingerprint scan image. ' + err.message, type: 'error' });
       console.error('Error during enrollment:', err);

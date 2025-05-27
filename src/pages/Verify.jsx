@@ -23,8 +23,6 @@ const Verify = () => {
   const [scanImage, setScanImage] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const GET_FINGER_INDEX_ENDPOINT = import.meta.env.VITE_ENDPOINT_URL + '/getFingerIndex';
-
   const toggleFinger = (index) => {
     const updated = Array(fingerPositions.length).fill(false);
     updated[index] = true;
@@ -42,13 +40,16 @@ const Verify = () => {
 
   const handleUserIdChange = (e) => {
     const value = e.target.value;
-    if (/^\d*$/.test(value)) {
-      setFormData((prev) => ({ ...prev, userId: value }));
-    }
+    setFormData((prev) => ({ ...prev, userId: value }));
   };
 
   useEffect(() => {
     const controller = new AbortController();
+
+    const params = new URLSearchParams({ userid: formData.userId });
+    const url = `${import.meta.env.VITE_ENDPOINT_URL}/getFingerIndex?${params}`;
+
+    console.log('Fetching finger index from:', url);
 
     if (formData.userId.trim() !== '') {
       const timer = setTimeout(() => {
@@ -61,11 +62,17 @@ const Verify = () => {
         })
           .then((res) => res.json())
           .then((data) => {
-            if (data.fingerPosition !== undefined) {
-              const fingerIndex = getFingerIndexFromEnum(data.fingerPosition);
-              // console.log('finger position:',data.fingerPosition);
-              // console.log('Finger index:', fingerIndex);
-              toggleFinger(fingerIndex);
+            if (data.OperationStatus === false) {
+              setLog({ message: data.OperationMessage || 'Failed to retrieve user or finger index data.', type: 'error' });
+              setScanImage(null);
+            }
+            else {
+              if (data.FingerPosition !== undefined) {
+                const fingerIndex = getFingerIndexFromEnum(data.FingerPosition);
+                // console.log('finger position:',data.fingerPosition);
+                // console.log('Finger index:', fingerIndex);
+                toggleFinger(fingerIndex);
+              }
             }
           })
           .catch((err) => {
@@ -81,7 +88,7 @@ const Verify = () => {
         controller.abort();
       };
     }
-    else {  
+    else {
       toggleFinger(null);
       setFormData((prev) => ({ ...prev, firstName: '', lastName: '' }));
       setScanImage(null);
@@ -124,14 +131,23 @@ const Verify = () => {
       });
 
       const data = await res.json();
-      setScanImage(data.scanImageBase64);
-      setFormData((prev) => ({
-        ...prev,
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-      }));
+      if (!res.ok) {
+        throw new Error(data.OperationMessage || 'Failed to Verification');
+      }
 
-      setLog({ message: `Successfully verification finger`, type: 'success' });
+      if (data.OperationStatus === false) {
+        setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
+        setScanImage(null); // Kosongkan image jika gagal
+      }
+      else {
+        setFormData((prev) => ({
+          ...prev,
+          firstName: data.FirstName || '',
+          lastName: data.LastName || '',
+        }));
+        setScanImage(data.CaptureImage);
+        setLog({ message: `Match user (ID: ${formData.userId}) ${data.FirstName} ${data.LastName}`, type: 'success' });
+      }
     } catch (err) {
       setLog({ message: 'Failed to load fingerprint scan image. ' + err.message, type: 'error' });
       console.error('Error during enrollment:', err);

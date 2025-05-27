@@ -1,3 +1,5 @@
 {
-    "fingerPosition": 1
+    "FingerPosition": 1,
+    "OperationStatus": true,
+    "OperationMessage": "Get fingerPosition successful"
 }

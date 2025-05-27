@@ -65,7 +65,7 @@ const Enroll = () => {
 
   const enrollCapture = async () => {
     if (!validateForm()) {
-      setLog({message:'Please complete all required fields.', type: 'error'});
+      setLog({ message: 'Please complete all required fields.', type: 'error' });
       return;
     }
 
@@ -74,20 +74,20 @@ const Enroll = () => {
       .filter(Boolean);
 
     if (selected.length === 0) {
-      setLog({message:'No fingers selected for capture.', type: 'info'});
+      setLog({ message: 'No fingers selected for capture.', type: 'info' });
       setScanImage(null);
       return;
     }
 
 
 
-    const ENROLL_ENDPOINT = import.meta.env.VITE_ENDPOINT_URL + '/enroll';
+    const ENROLL_ENDPOINT = import.meta.env.VITE_ENDPOINT_URL + '/api/enroll';
 
     // console.log("url: " + ENROLL_ENDPOINT);
 
     setIsEnrolled(true);
-    
-    setLog({message:'Please place your finger...', type: 'info'});
+
+    setLog({ message: 'Please place your finger...', type: 'info' });
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     try {
@@ -114,13 +114,24 @@ const Enroll = () => {
         body: JSON.stringify(userData)
       })
         .then((res) => res.json())
-        .then((data) => setScanImage(data.scanImageBase64), setLog({message:`Successfully enrollment finger for user (ID: ${formData.userId}) ${formData.firstName} ${formData.lastName} `, type: 'success'}))
+        .then((data) => {
+          if (data.OperationStatus === false) {
+            setLog({ message: data.OperationMessage || 'Enrollment failed.', type: 'error' });
+            setScanImage(null); // Kosongkan image jika gagal
+          } else {
+            setScanImage(data.CaptureImage);
+            setLog({
+              message: `Successfully enrollment finger for user (ID: ${formData.userId}) ${formData.firstName} ${formData.lastName}`,
+              type: 'success'
+            });
+          }
+        })
         .catch((error) => setLog('Failed to load fingerprint scan image. ' + error.message));
     } catch (err) {
-      setLog({message:'Failed to load fingerprint scan image. ' + err.message, type: 'error'});
+      setLog({ message: 'Failed to load fingerprint scan image. ' + err.message, type: 'error' });
       console.error('Error during enrollment:', err);
     }
-    finally{
+    finally {
       setIsEnrolled(false);
     }
 
@@ -147,12 +158,8 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.userId}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (/^\d*$/.test(value)) { 
-              setFormData({ ...formData, userId: e.target.value }) 
-            }
-          }}
+          maxLength={10} 
+          onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
         />
         {errors.userId && <p className="text-xs text-red-500 mb-2">{errors.userId}</p>}
 
@@ -161,6 +168,7 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.firstName}
+          maxLength={20} 
           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
         />
         {errors.firstName && <p className="text-xs text-red-500 mb-2">{errors.firstName}</p>}
@@ -170,6 +178,7 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.lastName}
+          maxLength={20} 
           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
         />
         {errors.lastName && <p className="text-xs text-red-500 mb-2">{errors.lastName}</p>}
