@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import fingerImg from '../assets/finger.png';
+import { getFingerIndexFromEnum } from '../utils/fingerUtils';
 
 const fingerPositions = [
   { left: '-2%', top: '23%' },
@@ -61,7 +62,10 @@ const Verify = () => {
           .then((res) => res.json())
           .then((data) => {
             if (data.fingerPosition !== undefined) {
-              toggleFinger(data.fingerPosition - 1);
+              const fingerIndex = getFingerIndexFromEnum(data.fingerPosition);
+              // console.log('finger position:',data.fingerPosition);
+              // console.log('Finger index:', fingerIndex);
+              toggleFinger(fingerIndex);
             }
           })
           .catch((err) => {

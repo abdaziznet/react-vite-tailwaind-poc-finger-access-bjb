@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import fingerImg from '../assets/finger.png';
+import { getFingerIndexFromEnum } from '../utils/fingerUtils';
 
 const fingerPositions = [
   { left: '-2%', top: '23%' },
@@ -61,7 +62,10 @@ const Identify = () => {
         lastName: data.lastName || '',
       }));
 
-      toggleFinger(data.fingerPosition - 1);
+      const fingerIndex = getFingerIndexFromEnum(data.fingerPosition);
+      // console.log('finger position:',data.fingerPosition);
+      // console.log('Finger index:', fingerIndex);
+      toggleFinger(fingerIndex);
 
       setLog({ message: `Successfully identification finger`, type: 'success' });
     } catch (err) {

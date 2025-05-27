@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import fingerImg from '../assets/finger.png';
+import { getEnumFromFingerIndex } from '../utils/fingerUtils';
 
 const fingerPositions = [
   { left: '-2%', top: '23%' }, // Left pinky
@@ -91,12 +92,16 @@ const Enroll = () => {
 
     try {
 
+      const fingerPosition = getEnumFromFingerIndex(fingerIndex); // Convert index (0-9) to enum (1-10)
+
+      // console.log('Finger position:', fingerPosition);
+
       const userData = {
         userId: formData.userId,
         imageQualityThreshold: formData.imageQuality,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        fingerPosition: fingerIndex
+        fingerPosition: fingerPosition
       };
 
       console.log('Sending user data:', userData);
