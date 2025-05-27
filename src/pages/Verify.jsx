@@ -53,7 +53,7 @@ const Verify = () => {
 
     if (formData.userId.trim() !== '') {
       const timer = setTimeout(() => {
-        fetch('/data/getFingerPosition.json', {
+        fetch('/data/getUser.json', {
           signal: controller.signal,
           method: 'GET',
           headers: {

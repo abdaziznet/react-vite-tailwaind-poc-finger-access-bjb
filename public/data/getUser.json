@@ -1,0 +1,8 @@
+{
+    "UserId": "1000002",
+    "FirstName": "Liam",
+    "LastName": "Delap",
+    "FingerPosition": 9,
+    "OperationStatus": true,
+    "OperationMessage": "User found(Liam)"
+}
