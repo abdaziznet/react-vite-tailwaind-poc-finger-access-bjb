@@ -88,7 +88,7 @@ const Enroll = () => {
     try {
 
     const url = import.meta.env.VITE_ENDPOINT_URL + '/api/enroll';
-    //console.log("url: " + url);
+    console.log("url: " + url);
 
       const fingerPosition = getEnumFromFingerIndex(fingerIndex); // Convert index (0-9) to enum (1-10)
 
@@ -104,7 +104,7 @@ const Enroll = () => {
 
       console.log('Sending user data:', userData);
 
-      const res = await fetch("/data/enrollResult.json", {
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

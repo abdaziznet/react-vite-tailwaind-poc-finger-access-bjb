@@ -17,7 +17,7 @@ const fingerPositions = [
 
 const Verify = () => {
   const [selectedFingers, setSelectedFingers] = useState(Array(fingerPositions.length).fill(false));
-  const [formData, setFormData] = useState({ userId: '', firstName: '', lastName: '' });
+  const [formData, setFormData] = useState({ userId: '', firstName: '', lastName: '', score: '' });
   const [fingerIndex, setFingerIndex] = useState(0);
   const [log, setLog] = useState({ message: '', type: '' });
   const [scanImage, setScanImage] = useState(null);
@@ -47,13 +47,13 @@ const Verify = () => {
     const controller = new AbortController();
 
     const params = new URLSearchParams({ userid: formData.userId });
-    const url = `${import.meta.env.VITE_ENDPOINT_URL}/api/getuser?${params}`;
+    const urlGetUser = `${import.meta.env.VITE_ENDPOINT_URL}/api/getuser?${params}`;
 
-    console.log('Fetching finger index from:', url);
+    console.log('Fetching finger index from:', urlGetUser);
 
     if (formData.userId.trim() !== '') {
       const timer = setTimeout(() => {
-        fetch('/data/getUser.json', {
+        fetch(urlGetUser, {
           signal: controller.signal,
           method: 'GET',
           headers: {
@@ -115,20 +115,15 @@ const Verify = () => {
     setLog({ message: 'Please place your finger...', type: 'info' });
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const userData = {
-      userId: formData.userId,
-      fingerIndex,
-    };
-
     try {
-      const url = import.meta.env.VITE_ENDPOINT_URL + '/api/verify';
+      const paramsUserId = new URLSearchParams({ userid: formData.userId });
+      const urlverify = `${import.meta.env.VITE_ENDPOINT_URL}/api/verify?${paramsUserId}`;
 
-      const res = await fetch('/data/verifyResult.json', {
+      const res = await fetch(urlverify, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+        }
       });
 
       const data = await res.json();
@@ -144,12 +139,17 @@ const Verify = () => {
         if (!data.IsMatch) {
           setLog({ message: data.OperationMessage || 'Not match user found', type: 'error' });
           setScanImage(null); // Kosongkan image jika gagal
+          setFormData((prev) => ({
+          ...prev,
+          score: parseInt(data.Score, 5) || 0,
+        }));
           return;
         }
         setFormData((prev) => ({
           ...prev,
           firstName: data.FirstName || '',
           lastName: data.LastName || '',
+          score: parseInt(data.Score, 5) || 0,
         }));
         setScanImage(data.CaptureImage);
         setLog({ message: `Match user (ID: ${formData.userId}) ${data.FirstName} ${data.LastName}`, type: 'success' });
@@ -177,6 +177,8 @@ const Verify = () => {
         <input type="text" className="w-full mb-4 border border-gray-300 rounded px-2 py-1" value={formData.firstName} disabled />
         <label className="block mb-2 text-sm font-medium">Last Name</label>
         <input type="text" className="w-full mb-4 border border-gray-300 rounded px-2 py-1" value={formData.lastName} disabled />
+        <label className="block mb-2 text-sm font-medium">Score</label>
+        <input type="text" className="w-full mb-4 border border-gray-300 rounded px-2 py-1" value={formData.score} disabled />
       </div>
 
       <div className="flex flex-col items-center">
