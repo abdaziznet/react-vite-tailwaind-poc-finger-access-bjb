@@ -1,23 +1,31 @@
 import React, { useState } from 'react';
+import fingerImg from '../assets/finger.png';
 import { getEnumFromFingerIndex } from '../utils/fingerUtils';
-import FingerSelector from '../components/FingerSelector';
-import { fingerSelectorPositions } from '../constants/FingerConstant';
-import ScanResult from '../components/ScanResult';
+
+const fingerPositions = [
+  { left: '-2%', top: '23%' }, // Left pinky
+  { left: '6%', top: '-3%' }, // Left ring
+  { left: '18%', top: '-13%' },  // Left middle
+  { left: '30%', top: '-7%' }, // Left index
+  { left: '45%', top: '40%' }, // Left thumb
+  { left: '53%', top: '40%' }, // Right thumb
+  { left: '67%', top: '-7%' }, // Right index
+  { left: '79%', top: '-13%' },  // Right middle
+  { left: '92%', top: '-3%' }, // Right ring
+  { left: '100%', top: '23%' }, // Right pinky
+];
 
 const Enroll = () => {
-
-  const [fingerIndex, setFingerIndex] = useState(0);
-  const [log, setLog] = useState({ message: '', type: '' });
-  const [scanImage, setScanImage] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [isEnrolled, setIsEnrolled] = useState(false);
-
   const [selectedFingers, setSelectedFingers] = useState(
-    Array(fingerSelectorPositions.length).fill(false)
+    Array(fingerPositions.length).fill(false)
   );
 
   const toggleFinger = (index) => {
-    const updated = Array(fingerSelectorPositions.length).fill(false);
+    // const updated = [...selectedFingers];
+    // updated[index] = !updated[index];
+    // setSelectedFingers(updated);
+
+    const updated = Array(fingerPositions.length).fill(false);
     if (!selectedFingers[index]) {
       updated[index] = true;
       setFingerIndex(index);
@@ -39,6 +47,12 @@ const Enroll = () => {
     lastName: '',
   });
 
+  const [fingerIndex, setFingerIndex] = useState(0);
+  const [log, setLog] = useState({ message: '', type: '' });
+  const [scanImage, setScanImage] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [isEnrolled, setIsEnrolled] = useState(false);
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.userId.trim()) newErrors.userId = 'User ID is required';
@@ -47,6 +61,7 @@ const Enroll = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   const enrollCapture = async () => {
     if (!validateForm()) {
@@ -64,6 +79,7 @@ const Enroll = () => {
       return;
     }
 
+
     setIsEnrolled(true);
 
     setLog({ message: 'Please place your finger...', type: 'info' });
@@ -71,8 +87,8 @@ const Enroll = () => {
 
     try {
 
-      const url = import.meta.env.VITE_ENDPOINT_URL + '/api/enroll';
-      console.log("url: " + url);
+    const url = import.meta.env.VITE_ENDPOINT_URL + '/api/enroll';
+    console.log("url: " + url);
 
       const fingerPosition = getEnumFromFingerIndex(fingerIndex); // Convert index (0-9) to enum (1-10)
 
@@ -116,6 +132,7 @@ const Enroll = () => {
     finally {
       setIsEnrolled(false);
     }
+
   };
 
   return (
@@ -139,7 +156,7 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.userId}
-          maxLength={10}
+          maxLength={10} 
           onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
         />
         {errors.userId && <p className="text-xs text-red-500 mb-2">{errors.userId}</p>}
@@ -149,7 +166,7 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.firstName}
-          maxLength={20}
+          maxLength={20} 
           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
         />
         {errors.firstName && <p className="text-xs text-red-500 mb-2">{errors.firstName}</p>}
@@ -159,7 +176,7 @@ const Enroll = () => {
           type="text"
           className="w-full mb-4 border border-gray-300 rounded px-2 py-1"
           value={formData.lastName}
-          maxLength={20}
+          maxLength={20} 
           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
         />
         {errors.lastName && <p className="text-xs text-red-500 mb-2">{errors.lastName}</p>}
@@ -167,7 +184,35 @@ const Enroll = () => {
 
       {/* Finger UI Section */}
       <div className="flex flex-col items-center">
-        <FingerSelector selectedFingers={selectedFingers} toggleFinger={toggleFinger} fingerPositions={fingerSelectorPositions} selectorDisabled={false} />
+        <div className="relative w-[700px] h-[505px] border border-gray-300">
+          {/* <h2 className="text-lg text-center font-semibold mb-4 p-4">Enrollment</h2> */}
+          <div className="absolute left-1/2 top-1/2 w-[80%] h-[50%] -translate-x-1/2 -translate-y-1/2">
+            {/* Placeholder for hand outline */}
+
+            {/* Finger checkbox targets */}
+            {fingerPositions.map((pos, idx) => (
+              <label
+                key={idx}
+                className="absolute cursor-pointer"
+                style={{ left: pos.left, top: pos.top }}
+                title={`Finger ${idx + 1}`}
+              >
+                <input
+                  type="checkbox"
+                  className="w-4 h-4"
+                  checked={selectedFingers[idx]}
+                  onChange={() => toggleFinger(idx)}
+                />
+              </label>
+            ))}
+            <img
+              src={fingerImg}
+              alt="Finger positions"
+              className="w-full h-full object-cover">
+
+            </img>
+          </div>
+        </div>
         <button
           onClick={enrollCapture}
           disabled={isEnrolled}
@@ -180,9 +225,15 @@ const Enroll = () => {
           <p className={`mt-4 text-sm ${log.type === 'error' ? 'text-red-600' : log.type === 'success' ? 'text-green-600' : 'text-gray-700'}`}>{log.message}</p>
         )}
       </div>
-
       {/* Scanned Image Section */}
-      <ScanResult scanImage={scanImage} />
+      <div className="w-60 border border-gray-300 p-4 rounded-lg shadow-sm flex flex-col items-center">
+        <h2 className="text-lg font-semibold mb-4">Scan Result</h2>
+        {scanImage ? (
+          <img src={scanImage} alt="Fingerprint Scan" className="w-full rounded" />
+        ) : (
+          <p className="text-sm text-gray-500">No scan image</p>
+        )}
+      </div>
     </div>
   )
 };
